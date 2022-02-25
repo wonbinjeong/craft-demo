@@ -67,12 +67,12 @@ export default function Networth() {
 
         switch(fundType) {
             case "asset":
-                let copyAssets = assets;
+                let copyAssets = [...assets];
                 copyAssets[fundTypeIdx].fund[fundIdx] = {name: fundName, amount: parseInt(amount)};
                 setAssets(copyAssets);
                 break;
             case "liability":
-                let copyLiabilities = liabilities;
+                let copyLiabilities = [...liabilities];
                 copyLiabilities[fundTypeIdx].fund[fundIdx] = {name: fundName, amount: parseInt(amount)};;
                 setLiabilities(copyLiabilities);
                 break;
@@ -86,7 +86,7 @@ export default function Networth() {
     const updateCurrency = async (event) => {
         setPrevCurrency(currency)
         setCurrency(event.target.value)    
-        await getNetworth();  
+        getNetworth();  
     }
 
     return (

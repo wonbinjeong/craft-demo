@@ -1,36 +1,85 @@
 import axios from "axios";
 
-export const calculateNetworth = async (req, res, next) => {
+export const calculateNetworth = async (req, res) => {
     try {
-        const {liability, asset} = req.body;
+        const {liabilities, assets} = req.body;
+
+        if (liabilities === undefined || assets === undefined) {
+            return res.status(400).send("Invalid data");
+        }
+        
+        let asset = 0;
+        assets.forEach(fundType => {
+            fundType.fund.forEach(fund => {
+                asset += fund.amount
+            })
+        })
+
+        let liability = 0;
+        liabilities.forEach(fundType => {
+            fundType.fund.forEach(fund => {
+                liability += fund.amount
+            })
+        })
 
         res.status(200).json({asset: asset, liability: liability, networth: asset - liability})
     } catch(err) {
-        next(err);
+        console.log(err)
+        res.status(500).send(err);
     }
 }
 
-export const calculateNetworthWithCurrency = async (req, res, next) => {
+export const calculateNetworthWithCurrency = async (req, res) => {
     try {
-        const {liability, asset, currency, prevCurrency} = req.body;
+        const {liabilities, assets, currency, prevCurrency} = req.body;
 
-        let response = await axios.get(`https://freecurrencyapi.net/api/v2/latest?apikey=96954540-9607-11ec-8b07-a393a4ccad8e&base_currency=${prevCurrency}`);
-        // let conversion = response.data[currency];
-        let conversion = response.data["USD"];
+        if (liabilities === undefined || assets === undefined 
+            || currency === undefined || prevCurrency === undefined) {
+                return res.status(400).send("Invalid data");
+            }   
 
-        let convertedLiability = liability * conversion;
-        let convertedAsset = asset * conversion;
-        let networth = convertedAsset - convertedLiability;
+        // let response = await axios.get(`https://freecurrencyapi.net/api/v2/latest?apikey=96954540-9607-11ec-8b07-a393a4ccad8e&base_currency=${prevCurrency}`);
+        // let conversion = response.data.data[currency];
+        let conversion = await getConversion(prevCurrency, currency);
 
-        console.log("HERE");
-        console.log(liability);
-        console.log(convertedLiability);
-        console.log(asset);
-        console.log(convertedAsset);
-        console.log(networth);
+        let asset = 0;
+        assets.forEach(fundType => {
+            fundType.fund.forEach(fund => {
+                fund.amount = Math.round(fund.amount * conversion * 100) / 100;
+                asset += fund.amount;
+            })
+        })
 
-        res.status(200).json({asset: convertedAsset, liability: convertedLiability, networth: networth})
+        let liability = 0;
+        liabilities.forEach(fundType => {
+            fundType.fund.forEach(fund => {
+                fund.amount = Math.round(fund.amount * conversion * 100) / 100;
+                liability += fund.amount;
+            })
+        })
+
+        asset = Math.round(asset * 100) / 100;
+        liability = Math.round(liability * 100) / 100;
+        let networth = Math.round((asset-liability) * 100) / 100;
+
+        res.status(200).json({
+            assets: assets, 
+            liabilities: liabilities, 
+            asset: asset, 
+            liability: liability, 
+            networth: networth,
+        })
     } catch(err) {
-        next(err);
+        console.log(err)
+        res.status(500).send(err);
+    }
+}
+
+export const getConversion = async (prevCurrency, currency) => {
+    try {
+        let response = await axios.get(`https://freecurrencyapi.net/api/v2/latest?apikey=96954540-9607-11ec-8b07-a393a4ccad8e&base_currency=${prevCurrency}`);
+        return response.data.data[currency]
+    } catch(err) {
+        console.log(err);
     }
 }

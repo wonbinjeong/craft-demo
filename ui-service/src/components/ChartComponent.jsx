@@ -41,8 +41,6 @@ const ChartComponent = (props) => {
             }
         ]
 
-        console.log(dataSets)
-
         setLabels(totalLabels);
         setDatasets(dataSets)
     }
