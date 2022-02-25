@@ -1,33 +1,43 @@
 import React from "react";
 import PropTypes from "prop-types";
-import Table from 'react-bootstrap/Table'
-import TableRowComponent from "./TableRowComponent"
+import {CTable, CTableBody, CTableRow, CTableDataCell} from '@coreui/react';
+import TableRowComponent from "./TableRowComponent";
 
 const TableComponentPropTypes = {
-    funds : PropTypes.arrayOf(PropTypes.object),
+    funds : PropTypes.arrayOf(PropTypes.object).isRequired,
+    currency: PropTypes.string.isRequired,
+    fundType: PropTypes.string.isRequired,
+    updateFund: PropTypes.func.isRequired,
 }
 
 const TableComponent = (props) => {
-    const {funds} = props;
+    const {funds, currency, fundType, updateFund} = props;
 
     return (
-        <Table striped bordered hover variant="dark">
-            <thead></thead>
-            <tbody>
-                {funds.map((funding, index) => 
+        <CTable striped bordered hover>
+            <CTableBody>
+                {funds.map((funding, fundTypeIdx) => 
                     <>
-                        <tr>
-                            <td colSpan={2}><b>{funding.fundType}</b></td>
-                        </tr>
+                        <CTableRow>
+                            <CTableDataCell colSpan={2}><b>{funding.fundType}</b></CTableDataCell>
+                        </CTableRow>
                         {
-                            funding.fund.map((f, index) => 
-                                <TableRowComponent fundName={f.name} fundAmount={f.amount} />
+                            funding.fund.map((f, fundIdx) => 
+                                <TableRowComponent 
+                                    key={f.name} 
+                                    fundName={f.name} 
+                                    fundAmount={f.amount}
+                                    fundType={fundType}
+                                    fundTypeIdx={fundTypeIdx}
+                                    fundIdx = {fundIdx}
+                                    currency={currency} 
+                                    updateFund={updateFund}/>
                             )
                         }
                     </>
                 )}
-            </tbody>
-        </Table>
+            </CTableBody>
+        </CTable>
     )
 }
 
